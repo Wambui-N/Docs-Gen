@@ -11,6 +11,9 @@
   "dependencies": {
     "@clerk/nextjs": "^5.2.2",
     "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-dialog": "^1.1.2",
+    "@radix-ui/react-select": "^2.1.2",
+    "@radix-ui/react-progress": "^1.1.0",
     "@supabase/ssr": "^0.4.0",
     "@supabase/supabase-js": "^2.44.3",
     "class-variance-authority": "^0.7.1",
@@ -20,13 +23,21 @@
     "openai": "^4.52.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "stripe": "^16.12.0",
     "svix": "^1.25.0",
-    "tailwind-merge": "^3.3.1"
+    "tailwind-merge": "^3.3.1",
+    "jspdf": "^2.5.1",
+    "html2canvas": "^1.4.1",
+    "docx": "^8.5.0",
+    "file-saver": "^2.0.5",
+    "cheerio": "^1.0.0-rc.12",
+    "axios": "^1.7.7"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/file-saver": "^2.0.7",
     "autoprefixer": "^10.4.17",
     "eslint": "^8",
     "eslint-config-next": "14.2.3",

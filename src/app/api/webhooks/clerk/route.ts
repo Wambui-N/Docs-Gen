@@ -1,17 +1,14 @@
 import { Webhook } from 'svix';
 import { headers } from 'next/headers';
 import { WebhookEvent } from '@clerk/nextjs/server';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@supabase/supabase-js';
 
-// Disable body parsing for this route, as we need the raw body to verify the webhook signature.
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(req: Request) {
-  // You can find this in the Clerk Dashboard -> Webhooks -> choose the webhook
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
 
   if (!WEBHOOK_SECRET) {
@@ -61,25 +58,57 @@ export async function POST(req: Request) {
   if (eventType === 'user.created') {
     console.log(`User ${id} was ${eventType}`);
 
-    // Create a new company for the new user in Supabase
-    const { data, error } = await supabase
-      .from('Company')
-      .insert([
-        { 
-          clerk_user_id: id,
-          name: 'My New Company', // Default name
-        }
-      ]);
+    try {
+      // Create a new company for the new user in Supabase
+      const { data: company, error: companyError } = await supabase
+        .from('Company')
+        .insert([
+          { 
+            clerk_user_id: id,
+            name: 'My Company',
+            about: '',
+            website_url: '',
+            tone_guidelines: ''
+          }
+        ])
+        .select()
+        .single();
 
-    if (error) {
-      console.error('Error creating company for new user:', error);
-      return new Response('Error occured while creating company', {
+      if (companyError) {
+        console.error('Error creating company for new user:', companyError);
+        return new Response('Error occured while creating company', {
+          status: 500
+        });
+      }
+
+      // Create default subscription
+      const { error: subscriptionError } = await supabase
+        .from('Subscription')
+        .insert([
+          {
+            company_id: company.id,
+            plan_name: 'pro',
+            tokens_allocated: 100,
+            tokens_used: 0,
+            status: 'active'
+          }
+        ]);
+
+      if (subscriptionError) {
+        console.error('Error creating subscription for new user:', subscriptionError);
+        return new Response('Error occured while creating subscription', {
+          status: 500
+        });
+      }
+
+      console.log('Company and subscription created successfully for user:', id);
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      return new Response('Error occured', {
         status: 500
       });
     }
-
-    console.log('Company created successfully for user:', id);
   }
 
   return new Response('', { status: 200 });
-} 
+}
